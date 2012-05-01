@@ -9,6 +9,8 @@ shared strict volatile int *sentinel;
 shared sintpt *s_directory;
 shared slockpt *dir_locks;
 
+int reads, writes;
+
 void setup_limited_directory(int max_dir_size)
 {
     sentinel = (shared strict int *) upc_all_alloc( THREADS, sizeof(int) );
@@ -34,6 +36,66 @@ void cleanup_limited_directory()
     if(MYTHREAD == 0) upc_free((shared int *) sentinel);
 }
 
+void reset_limited_directory(shared strict volatile int *valid, int dir_size)
+{
+    volatile int * l_directory = (int *) s_directory[MYTHREAD];
+    for(int i = 0; i < dir_size; i++)
+    {
+        l_directory[i] = DIR_EMPTY;
+    }
+    
+    valid[MYTHREAD] = 0;
+    sentinel[MYTHREAD] = 0;
+}
+
+void stall_limited_directory(shared strict volatile int *valid, int dir_size)
+{
+    if(valid[lock_holder] == 0)
+    {
+        upc_lock(dir_locks[lock_holder]); writes++; reads++;
+        
+        sintpt rem_dir = s_directory[lock_holder]; reads++;
+        
+        int entry;
+        for(entry = 0; entry < dir_size; entry++)
+        {
+            reads++;
+            if(rem_dir[entry] == DIR_EMPTY)
+            {
+                rem_dir[entry] = MYTHREAD; writes++;
+                break;
+            }
+        }
+        
+        upc_unlock(dir_locks[lock_holder]); writes++;
+        
+        if(entry < dir_size)
+        {
+            while(sentinel[MYTHREAD] == 0) {}
+        }
+        else
+        {
+            while(valid[lock_holder] == 0) {reads++;}
+        }
+    }
+}
+
+void unlock_limited_directory(shared strict volatile int *valid, int dir_size)
+{
+    volatile int * l_directory = (int *) s_directory[MYTHREAD];
+    
+    valid[MYTHREAD] = 1;
+    for(int i = 0; i < dir_size; i++)
+    {
+        int lookup = l_directory[i];
+        if(lookup != DIR_EMPTY)
+        {
+            sentinel[lookup] = 1;
+            writes++;
+        }
+    }
+}
+
 void test_limited_directory(shared int * data, shared strict volatile int *valid, int num_threads, int dir_size)
 {
     if(MYTHREAD == 0) lock_holder = rand() % num_threads;
@@ -42,18 +104,9 @@ void test_limited_directory(shared int * data, shared strict volatile int *valid
     upc_tick_t start_time = upc_ticks_now();
     upc_tick_t used_time;
     
-    volatile int * l_directory = (int *) s_directory[MYTHREAD];
-    for(int i = 0; i < dir_size; i++)
-    {
-        l_directory[i] = DIR_EMPTY;
-    }
-    
-    upc_forall(int i = 0; i < THREADS; i++; &valid[i]) valid[i] = 0;
+    reset_limited_directory(valid, dir_size);
     
     upc_barrier;
-    
-    int reads = 0;
-    int writes = 0;
     
     if(MYTHREAD < num_threads)
     {
@@ -65,16 +118,8 @@ void test_limited_directory(shared int * data, shared strict volatile int *valid
             data[MYTHREAD] = 1;
             
             // Declare valid
-            valid[MYTHREAD] = 1;
-            for(int i = 0; i < dir_size; i++)
-            {
-                int lookup = l_directory[i];
-                if(lookup != DIR_EMPTY)
-                {
-                    sentinel[lookup] = 1;
-                    writes++;
-                }
-            }
+            unlock_limited_directory(valid, dir_size);
+
             // Declaration complete
             used_time = upc_ticks_now() - start_time;
             time_offset = upc_ticks_to_ns(write_time-start_time);
@@ -82,37 +127,7 @@ void test_limited_directory(shared int * data, shared strict volatile int *valid
         else
         {
             // Wait for valid
-            sentinel[MYTHREAD] = 0;
-            reads++;
-            if(valid[lock_holder] == 0)
-            {
-                upc_lock(dir_locks[lock_holder]); writes++; reads++;
-                
-                sintpt rem_dir = s_directory[lock_holder]; reads++;
-                
-                int entry;
-                for(entry = 0; entry < dir_size; entry++)
-                {
-                    reads++;
-                    if(rem_dir[entry] == DIR_EMPTY)
-                    {
-                        rem_dir[entry] = MYTHREAD; writes++;
-                        break;
-                    }
-                }
-                
-                upc_unlock(dir_locks[lock_holder]); writes++;
-                
-                if(entry < dir_size)
-                {
-                    while(sentinel[MYTHREAD] == 0) {}
-                }
-                else
-                {
-                    while(valid[lock_holder] == 0) {reads++;}
-                }
-            }
-            // Data is valid
+            stall_limited_directory(valid, dir_size);
             
             upc_tick_t read_time = upc_ticks_now();
             used_time = read_time - start_time;
