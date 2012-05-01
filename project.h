@@ -10,6 +10,8 @@
 #include <upc_cray.h>
 #include <string.h>
 
+#define NO_ALERT -1
+
 typedef shared [] int * sintpt; // pointer to shared integer (if array, all on same thread)
 typedef shared upc_lock_t * slockpt; // pointer to shared lock
 
