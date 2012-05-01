@@ -31,6 +31,10 @@ void setup_read_list();
 void test_read_list(shared int * data, shared strict volatile int *valid, int num_threads);
 void cleanup_read_list();
 
+void setup_read_tree();
+void test_read_tree(shared int * data, shared strict volatile int *valid, int num_threads);
+void cleanup_read_tree();
+
 inline int max( int a, int b ) { return a > b ? a : b; }
 inline int min( int a, int b ) { return a < b ? a : b; }
 
