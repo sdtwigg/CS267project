@@ -51,7 +51,7 @@ void stall_write_list(shared strict volatile int *valid)
         int tail_alert = next_alert[lock_holder]; reads++;
         while(tail_alert != MYTHREAD)
         {
-            if(tail_alert != NO_ALERT)
+            if(tail_alert == NO_ALERT)
             {
                 next_alert[tail_loc] = MYTHREAD; writes++;
                 tail_alert = MYTHREAD;
