@@ -158,4 +158,6 @@ void test_write_list(shared int * data, shared strict volatile int *valid, int n
             printf("%d: time %d ns, reads %d, writes %d \n", i, s_time[i]-time_offset, s_read[i], s_write[i]);
         }
     }
+    
+    upc_barrier;
 }

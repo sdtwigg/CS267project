@@ -83,4 +83,6 @@ void test_spinlock(shared int * data, shared strict volatile int *valid, int num
             printf("%d: time %d ns, reads %d, writes %d \n", i, s_time[i]-time_offset, s_read[i], s_write[i]);
         }
     }
+    
+    upc_barrier;
 }
