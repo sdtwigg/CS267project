@@ -77,7 +77,7 @@ void stall_read_tree(shared strict volatile int *valid)
         int tail_loc = lock_holder;
         while(1)
         {
-            if((locations & 1) == 0)
+            if((location & 1) == 0)
             {
                 int lookup = next_alert_l[tail_loc]; reads++;
                 if(lookup == NO_ALERT)
@@ -87,7 +87,7 @@ void stall_read_tree(shared strict volatile int *valid)
                 }
                 else
                 {
-                    locations = locations >> 1;
+                    location = location >> 1;
                     tail_loc = lookup;
                 }
             }
@@ -101,7 +101,7 @@ void stall_read_tree(shared strict volatile int *valid)
                 }
                 else
                 {
-                    locations = locations >> 1;
+                    location = location >> 1;
                     tail_loc = lookup;
                 }
             }
