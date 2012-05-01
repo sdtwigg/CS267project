@@ -6,7 +6,7 @@ shared int lock_holder;
 shared int time_offset;
 
 shared strict volatile int *sentinel;
-shared strict int *next_alert;
+shared strict volatile int *next_alert;
 shared slockpt *dir_locks;
 
 int reads, writes;
