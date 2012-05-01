@@ -1,0 +1,14 @@
+#PBS -l walltime=00:01:00
+#PBS -l mppwidth=16
+#PBS -l mppnppn=1
+#PBS -j oe
+#PBS -V
+
+cd $PBS_O_WORKDIR
+aprun -n 4 ./project
+
+aprun -n 4  ./project -n 1
+aprun -n 4  ./project -n 2
+aprun -n 4  ./project -n 4
+aprun -n 8  ./project -n 8
+aprun -n 16 ./project -n 16

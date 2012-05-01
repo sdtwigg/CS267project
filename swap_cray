@@ -1,0 +1,2 @@
+module swap PrgEnv-pgi PrgEnv-cray
+module list
