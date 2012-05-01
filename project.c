@@ -42,6 +42,11 @@ int main( int argc, char** argv )
     cleanup_write_list();
     
     upc_barrier;
+    setup_read_list();
+    test_read_list(data, valid, num_threads);
+    cleanup_read_list();
+    
+    upc_barrier;
     
     if(MYTHREAD ==0)
     {

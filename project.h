@@ -25,6 +25,10 @@ void setup_write_list();
 void test_write_list(shared int * data, shared strict volatile int *valid, int num_threads);
 void cleanup_write_list();
 
+void setup_read_list();
+void test_read_list(shared int * data, shared strict volatile int *valid, int num_threads);
+void cleanup_read_list();
+
 inline int max( int a, int b ) { return a > b ? a : b; }
 inline int min( int a, int b ) { return a < b ? a : b; }
 
