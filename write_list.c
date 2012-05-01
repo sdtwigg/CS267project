@@ -1,7 +1,5 @@
 #include "project.h"
 
-const int NO_ALERT = -1;
-
 shared int lock_holder;
 shared int time_offset;
 

@@ -1,7 +1,5 @@
 #include "project.h"
 
-const int NO_ALERT = -1;
-
 shared int lock_holder;
 shared int time_offset;
 
@@ -88,7 +86,7 @@ void stall_read_list(shared strict volatile int *valid)
             while(sentinel[MYTHREAD] == 0) {}
         }
         
-        int tail_alert = next_alert[MYTHREAD];
+        tail_alert = next_alert[MYTHREAD];
         if(tail_alert != NO_ALERT)
         {
             sentinel[tail_alert] = 1; writes++;
