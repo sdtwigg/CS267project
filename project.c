@@ -27,17 +27,16 @@ int main( int argc, char** argv )
     }
     
     upc_barrier;
-    if(MYTHREAD == 0) printf("\nSpinlock Experiment with %d threads\n", num_threads);
+    setup_spinlock();
     test_spinlock(data, valid, num_threads);
+    cleanup_spinlock();
     
     upc_barrier;
-    if(MYTHREAD == 0) printf("\nLimited Directory Experiment with %d threads\n", num_threads);
     setup_limited_directory(4);
     test_limited_directory(data, valid, num_threads, 4);
     cleanup_limited_directory();
     
     upc_barrier;
-    if(MYTHREAD == 0) printf("\nWrite List Experiment with %d threads\n", num_threads);
     setup_write_list();
     test_write_list(data, valid, num_threads);
     cleanup_write_list();

@@ -11,8 +11,16 @@ shared slockpt *dir_locks;
 
 int reads, writes;
 
+shared int *s_time;
+shared int *s_read;
+shared int *s_write;
+
 void setup_limited_directory(int max_dir_size)
 {
+    s_time  = (shared int *) upc_all_alloc( THREADS, sizeof(int) );
+    s_read  = (shared int *) upc_all_alloc( THREADS, sizeof(int) );
+    s_write = (shared int *) upc_all_alloc( THREADS, sizeof(int) );
+    
     sentinel = (shared strict int *) upc_all_alloc( THREADS, sizeof(int) );
     
     s_directory  = (shared sintpt *) upc_all_alloc( THREADS, sizeof(sintpt) );
@@ -34,6 +42,10 @@ void cleanup_limited_directory()
     if(MYTHREAD == 0) upc_free(dir_locks);
     if(MYTHREAD == 0) upc_free(s_directory);
     if(MYTHREAD == 0) upc_free((shared int *) sentinel);
+    
+    if(MYTHREAD == 0) upc_free(s_write);
+    if(MYTHREAD == 0) upc_free(s_read);
+    if(MYTHREAD == 0) upc_free(s_time);
 }
 
 void reset_limited_directory(shared strict volatile int *valid, int dir_size)
@@ -46,6 +58,9 @@ void reset_limited_directory(shared strict volatile int *valid, int dir_size)
     
     valid[MYTHREAD] = 0;
     sentinel[MYTHREAD] = 0;
+    
+    reads = 0;
+    writes = 0;
 }
 
 void stall_limited_directory(shared strict volatile int *valid, int dir_size)
@@ -137,6 +152,18 @@ void test_limited_directory(shared int * data, shared strict volatile int *valid
     }
     int interval = upc_ticks_to_ns(used_time);
     
+    s_time[MYTHREAD]  = interval;
+    s_read[MYTHREAD]  = reads;
+    s_write[MYTHREAD] = writes;
+    
     upc_barrier;
-    if(MYTHREAD < num_threads) printf("%d: time %d ns, reads %d, writes %d \n", MYTHREAD, interval-time_offset, reads, writes);
+    
+    if(MYTHREAD == 0)
+    {
+        printf("\nLimited Directory Experiment with %d threads (%d owns)\n", num_threads, lock_holder);
+        for(int i = 0; i < num_threads; i++)
+        {
+            printf("%d: time %d ns, reads %d, writes %d \n", i, s_time[i]-time_offset, s_read[i], s_write[i]);
+        }
+    }
 }
