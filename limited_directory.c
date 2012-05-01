@@ -97,6 +97,7 @@ void stall_limited_directory(shared strict volatile int *valid, int dir_size)
                 while(valid[lock_holder] == 0) {reads++;}
             }
         }
+        else printf("%d: TIMEOUT ISSUE\n", MYTHREAD);
     }
 }
 

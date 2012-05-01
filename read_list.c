@@ -85,6 +85,7 @@ void stall_read_list(shared strict volatile int *valid)
         {
             while(sentinel[MYTHREAD] == 0) {}
         }
+        else printf("%d: TIMEOUT ISSUE\n", MYTHREAD);
         
         tail_alert = next_alert[MYTHREAD];
         if(tail_alert != NO_ALERT)

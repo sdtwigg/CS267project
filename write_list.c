@@ -85,6 +85,7 @@ void stall_write_list(shared strict volatile int *valid)
         {
             while(sentinel[MYTHREAD] == 0) {}
         }
+        else printf("%d: TIMEOUT ISSUE\n", MYTHREAD);
     }
 }
 
