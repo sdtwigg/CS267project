@@ -65,6 +65,7 @@ void reset_limited_directory(shared strict volatile int *valid, int dir_size)
 
 void stall_limited_directory(shared strict volatile int *valid, int dir_size)
 {
+    reads++;
     if(valid[lock_holder] == 0)
     {
         upc_lock(dir_locks[lock_holder]); writes++; reads++;
@@ -84,13 +85,17 @@ void stall_limited_directory(shared strict volatile int *valid, int dir_size)
         
         upc_unlock(dir_locks[lock_holder]); writes++;
         
-        if(entry < dir_size)
+        reads++;
+        if(valid[lock_holder] == 0)
         {
-            while(sentinel[MYTHREAD] == 0) {}
-        }
-        else
-        {
-            while(valid[lock_holder] == 0) {reads++;}
+            if(entry < dir_size)
+            {
+                while(sentinel[MYTHREAD] == 0) {}
+            }
+            else
+            {
+                while(valid[lock_holder] == 0) {reads++;}
+            }
         }
     }
 }

@@ -58,6 +58,7 @@ void reset_read_list(shared strict volatile int *valid)
 
 void stall_read_list(shared strict volatile int *valid)
 {
+    reads++;
     if(valid[lock_holder] == 0)
     {
         upc_lock(dir_locks[lock_holder]); writes++; reads++;
@@ -81,7 +82,11 @@ void stall_read_list(shared strict volatile int *valid)
         
         upc_unlock(dir_locks[lock_holder]); writes++;
         
-        while(sentinel[MYTHREAD] == 0) {}
+        reads++;
+        if(valid[lock_holder] == 0)
+        {
+            while(sentinel[MYTHREAD] == 0) {}
+        }
         
         int tail_alert = next_alert[MYTHREAD];
         if(tail_alert != NO_ALERT)
