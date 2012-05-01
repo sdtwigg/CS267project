@@ -9,7 +9,7 @@ shared strict volatile int *sentinel;
 shared sintpt *s_directory;
 shared slockpt *dir_locks;
 
-void setup_limiteddirectory(int max_dir_size)
+void setup_limited_directory(int max_dir_size)
 {
     sentinel = (shared strict int *) upc_all_alloc( THREADS, sizeof(int) );
     
@@ -22,7 +22,7 @@ void setup_limiteddirectory(int max_dir_size)
     upc_barrier;
 }
 
-void cleanup_limitteddirectory()
+void cleanup_limited_directory()
 {
     upc_lock_free(dir_locks[MYTHREAD]);
     upc_free(s_directory[MYTHREAD]);
@@ -34,7 +34,7 @@ void cleanup_limitteddirectory()
     if(MYTHREAD == 0) upc_free((shared int *) sentinel);
 }
 
-void test_limiteddirectory(shared int * data, shared strict volatile int *valid, int num_threads, int dir_size)
+void test_limited_directory(shared int * data, shared strict volatile int *valid, int num_threads, int dir_size)
 {
     if(MYTHREAD == 0) lock_holder = rand() % num_threads;
     

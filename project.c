@@ -28,9 +28,9 @@ int main( int argc, char** argv )
     
     upc_barrier;
     
-    setup_limiteddirectory(4);
-    test_limiteddirectory(data, valid, num_threads, 4);
-    cleanup_limiteddirectory();
+    setup_limited_directory(4);
+    test_limited_directory(data, valid, num_threads, 4);
+    cleanup_limited_directory();
     
     upc_barrier;
     
