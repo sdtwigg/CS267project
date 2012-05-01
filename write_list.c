@@ -1,22 +1,21 @@
 #include "project.h"
 
-const int DIR_EMPTY = -1;
+const int NO_ALERT = -1;
 
 shared int lock_holder;
 shared int time_offset;
 
 shared strict volatile int *sentinel;
-shared sintpt *s_directory;
+shared strict int *next_alert;
 shared slockpt *dir_locks;
 
 int reads, writes;
 
-void setup_limited_directory(int max_dir_size)
+void setup_write_list()
 {
     sentinel = (shared strict int *) upc_all_alloc( THREADS, sizeof(int) );
     
-    s_directory  = (shared sintpt *) upc_all_alloc( THREADS, sizeof(sintpt) );
-    s_directory[MYTHREAD] = (sintpt) upc_alloc(max_dir_size * sizeof(int));
+    next_alert = (shared strict int *) upc_all_alloc( THREADS, sizeof(int) );
     
     dir_locks = (shared slockpt *) upc_all_alloc(THREADS, sizeof(slockpt));
     dir_locks[MYTHREAD] = upc_global_lock_alloc();
@@ -24,80 +23,73 @@ void setup_limited_directory(int max_dir_size)
     upc_barrier;
 }
 
-void cleanup_limited_directory()
+void cleanup_write_list()
 {
     upc_lock_free(dir_locks[MYTHREAD]);
-    upc_free(s_directory[MYTHREAD]);
     
     upc_barrier;
     
     if(MYTHREAD == 0) upc_free(dir_locks);
-    if(MYTHREAD == 0) upc_free(s_directory);
+    if(MYTHREAD == 0) upc_free(next_alert);
     if(MYTHREAD == 0) upc_free((shared int *) sentinel);
 }
 
-void reset_limited_directory(shared strict volatile int *valid, int dir_size)
+void reset_write_list(shared strict volatile int *valid)
 {
-    volatile int * l_directory = (int *) s_directory[MYTHREAD];
-    for(int i = 0; i < dir_size; i++)
-    {
-        l_directory[i] = DIR_EMPTY;
-    }
-    
+    next_alert[MYTHREAD] = NO_ALERT;
     valid[MYTHREAD] = 0;
     sentinel[MYTHREAD] = 0;
 }
 
-void stall_limited_directory(shared strict volatile int *valid, int dir_size)
+void stall_write_list(shared strict volatile int *valid)
 {
     if(valid[lock_holder] == 0)
     {
         upc_lock(dir_locks[lock_holder]); writes++; reads++;
         
-        sintpt rem_dir = s_directory[lock_holder]; reads++;
-        
-        int entry;
-        for(entry = 0; entry < dir_size; entry++)
+        int tail_loc = lock_holder;
+        int tail_alert = next_alert[lock_holder]; reads++;
+        while(tail_alert != MYTHREAD)
         {
-            reads++;
-            if(rem_dir[entry] == DIR_EMPTY)
+            if(tail_alert != NO_ALERT)
             {
-                rem_dir[entry] = MYTHREAD; writes++;
+                next_alert[tail_loc] = MYTHREAD; writes++;
+                tail_alert = MYTHREAD;
                 break;
+            }
+            else
+            {
+                tail_loc = tail_alert;
+                tail_alert = next_alert[tail_loc]; reads++;
             }
         }
         
         upc_unlock(dir_locks[lock_holder]); writes++;
         
-        if(entry < dir_size)
-        {
-            while(sentinel[MYTHREAD] == 0) {}
-        }
-        else
-        {
-            while(valid[lock_holder] == 0) {reads++;}
-        }
+        while(sentinel[MYTHREAD] == 0) {}
     }
 }
 
-void unlock_limited_directory(shared strict volatile int *valid, int dir_size)
-{
-    volatile int * l_directory = (int *) s_directory[MYTHREAD];
-    
+void unlock_write_list(shared strict volatile int *valid)
+{   
     valid[MYTHREAD] = 1;
-    for(int i = 0; i < dir_size; i++)
+    
+    int tail_loc = MYTHREAD;
+    int tail_alert = next_alert[MYTHREAD];
+    while(tail_alert != NO_ALERT)
     {
-        int lookup = l_directory[i];
-        if(lookup != DIR_EMPTY)
-        {
-            l_directory[lookup] = DIR_EMPTY;
-            sentinel[lookup] = 1;
-            writes++;
-        }
+        sentinel[tail_alert] = 1; writes++;
+        
+        int old_loc = tail_loc;
+        tail_loc = tail_alert;
+        tail_alert = next_alert[tail_loc]; reads++;
+        
+        tail_alert[old_loc] = NO_ALERT; writes++;
     }
+    
 }
 
-void test_limited_directory(shared int * data, shared strict volatile int *valid, int num_threads, int dir_size)
+void test_write_list(shared int * data, shared strict volatile int *valid, int num_threads)
 {
     if(MYTHREAD == 0) lock_holder = rand() % num_threads;
     
@@ -105,7 +97,7 @@ void test_limited_directory(shared int * data, shared strict volatile int *valid
     upc_tick_t start_time = upc_ticks_now();
     upc_tick_t used_time;
     
-    reset_limited_directory(valid, dir_size);
+    reset_write_list(valid);
     
     upc_barrier;
     
@@ -119,7 +111,7 @@ void test_limited_directory(shared int * data, shared strict volatile int *valid
             data[MYTHREAD] = 1;
             
             // Declare valid
-            unlock_limited_directory(valid, dir_size);
+            unlock_write_list(valid);
 
             // Declaration complete
             used_time = upc_ticks_now() - start_time;
@@ -128,7 +120,7 @@ void test_limited_directory(shared int * data, shared strict volatile int *valid
         else
         {
             // Wait for valid
-            stall_limited_directory(valid, dir_size);
+            stall_write_list(valid);
             
             upc_tick_t read_time = upc_ticks_now();
             used_time = read_time - start_time;

@@ -20,6 +20,10 @@ void setup_limited_directory(int max_dir_size);
 void test_limited_directory(shared int * data, shared strict volatile int *valid, int num_threads, int dir_size);
 void cleanup_limited_directory();
 
+void setup_write_list();
+void test_write_list(shared int * data, shared strict volatile int *valid, int num_threads);
+void cleanup_write_list();
+
 inline int max( int a, int b ) { return a > b ? a : b; }
 inline int min( int a, int b ) { return a < b ? a : b; }
 
