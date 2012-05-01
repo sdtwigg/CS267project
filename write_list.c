@@ -30,7 +30,7 @@ void cleanup_write_list()
     upc_barrier;
     
     if(MYTHREAD == 0) upc_free(dir_locks);
-    if(MYTHREAD == 0) upc_free(next_alert);
+    if(MYTHREAD == 0) upc_free((shared int *) next_alert);
     if(MYTHREAD == 0) upc_free((shared int *) sentinel);
 }
 
@@ -84,7 +84,7 @@ void unlock_write_list(shared strict volatile int *valid)
         tail_loc = tail_alert;
         tail_alert = next_alert[tail_loc]; reads++;
         
-        tail_alert[old_loc] = NO_ALERT; writes++;
+        next_alert[old_loc] = NO_ALERT; writes++;
     }
     
 }

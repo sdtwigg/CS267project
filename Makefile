@@ -1,7 +1,7 @@
 UPCC = cc -h upc -O
 
 TARGETS=project
-CFILES = project.c common.c spinlock.c limited_directory.c
+CFILES = project.c common.c spinlock.c limited_directory.c write_list.c
 
 all: $(TARGETS)
 
