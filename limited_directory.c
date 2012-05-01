@@ -76,8 +76,8 @@ void test_limiteddirectory(shared int * data, shared strict volatile int *valid,
                 }
             }
             // Declaration complete
-            time_offset = upc_ticks_to_ns(write_time-start_time);
             used_time = upc_ticks_now() - start_time;
+            time_offset = upc_ticks_to_ns(write_time-start_time);
         }
         else
         {

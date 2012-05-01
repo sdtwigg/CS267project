@@ -1,12 +1,15 @@
 #include "project.h"
 
 shared int lock_holder;
+shared int time_offset;
 
 void test_spinlock(shared int * data, shared strict volatile int *valid, int num_threads)
 {
     if(MYTHREAD == 0) lock_holder = rand() % num_threads;
-    double start_time = read_timer();
-    double used_time;
+    
+    upc_barrier;
+    upc_tick_t start_time = upc_ticks_now();
+    upc_tick_t used_time;
     
     upc_barrier;
     upc_forall(int i = 0; i < THREADS; i++; &valid[i]) valid[i] = 0;
@@ -21,14 +24,15 @@ void test_spinlock(shared int * data, shared strict volatile int *valid, int num
         {
             sleep(1);
             
-            double write_time = read_timer();
-            data[MYTHREAD] = write_time;
+            upc_tick_t write_time = upc_ticks_now();
+            data[MYTHREAD] = 1;
             
             // Declare valid
             valid[MYTHREAD] = 1;
             // Declaration complete
             
-            used_time = read_timer() - write_time;
+            used_time = upc_ticks_now() - start_time;
+            time_offset = upc_ticks_to_ns(write_time-start_time);
         }
         else
         {
@@ -37,12 +41,12 @@ void test_spinlock(shared int * data, shared strict volatile int *valid, int num
             while(valid[lock_holder] == 0) {reads++;}
             // Data is valid
             
-            double posted_time = data[lock_holder];
-            used_time = read_timer() - posted_time;
+            upc_tick_t read_time = upc_ticks_now();
+            used_time = read_time - start_time;
         }
-        
-        printf("%d: time %g, reads %d, writes %d \n", MYTHREAD, used_time, reads, writes);
     }
+    int interval = upc_ticks_to_ns(used_time);
     
     upc_barrier;
+    if(MYTHREAD < num_threads) printf("%d: time %d ns, reads %d, writes %d \n", MYTHREAD, interval-time_offset, reads, writes);
 }

@@ -14,8 +14,6 @@ typedef shared [] int * sintpt; // pointer to shared integer (if array, all on s
 typedef shared upc_lock_t * slockpt; // pointer to shared lock
 
 
-double read_timer();
-
 void test_spinlock(shared int * data, shared strict volatile int *valid, int num_threads);
 
 void setup_limiteddirectory(int max_dir_size);

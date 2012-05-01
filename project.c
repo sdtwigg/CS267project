@@ -13,19 +13,17 @@ int main( int argc, char** argv )
 
     srand48( 2012 + MYTHREAD );
     
-    upc_barrier;
-    read_timer(); // Make sure all timers initialized at same time
-    
     upc_forall(int i = 0; i < THREADS; i++; &valid[i]) valid[i] = 0;
     
     if(MYTHREAD == 0) printf("\nLimited Directory Experiment with %d threads\n", num_threads);
     
     if(MYTHREAD == 0)
     {
-        double overhead = read_timer();
-        overhead = read_timer() - overhead;
+        upc_tick_t time1 = upc_ticks_now();
+        upc_tick_t time2 = upc_ticks_now();
+        int overhead = upc_ticks_to_ns(time2 - time1);
         
-        printf("Overhead: %g\n", overhead);
+        printf("Overhead: %d\n", overhead);
     }
     
     upc_barrier;
