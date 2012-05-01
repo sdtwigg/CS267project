@@ -17,7 +17,10 @@ typedef shared upc_lock_t * slockpt; // pointer to shared lock
 double read_timer();
 
 void test_spinlock(shared int * data, shared strict volatile int *valid, int num_threads);
-void test_limiteddirectory(shared int * data, shared strict volatile int *valid, shared strict volatile int *sentinel, int num_threads, int dir_size);
+
+void setup_limiteddirectory(int max_dir_size);
+void test_limiteddirectory(shared int * data, shared strict volatile int *valid, int num_threads, int dir_size);
+void cleanup_limiteddirectory();
 
 inline int max( int a, int b ) { return a > b ? a : b; }
 inline int min( int a, int b ) { return a < b ? a : b; }

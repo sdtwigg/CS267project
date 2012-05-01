@@ -7,11 +7,9 @@ int main( int argc, char** argv )
     
     shared int *data;
     shared strict int *valid;
-    shared strict int *sentinel;
     
     data  = (shared int *) upc_all_alloc( THREADS, sizeof(int) );
     valid = (shared strict int *) upc_all_alloc( THREADS, sizeof(int) );
-    sentinel = (shared strict int *) upc_all_alloc( THREADS, sizeof(int) );
 
     srand48( 2012 + MYTHREAD );
     
@@ -32,13 +30,14 @@ int main( int argc, char** argv )
     
     upc_barrier;
     
-    test_limiteddirectory(data, valid, sentinel, num_threads, 4);
+    setup_limiteddirectory(4);
+    test_limiteddirectory(data, valid, num_threads, 4);
+    cleanup_limiteddirectory();
     
     upc_barrier;
     
     if(MYTHREAD ==0)
     {
-        upc_free((shared int *) sentinel);
         upc_free((shared int *) valid);
         upc_free(data);
     }
