@@ -197,23 +197,20 @@ void test_read_tree(shared int * data, shared strict volatile int *valid, int nu
     s_read[MYTHREAD]  = reads;
     s_write[MYTHREAD] = writes;
     
-    if((interval > 0) && (lock_holder != MYTHREAD))
+    upc_barrier;
+    
+    int time_diff = interval - time_offset;
+    if((time_diff > 0) && (lock_holder != MYTHREAD))
     {
         acc_reads += reads;
         acc_writes += writes;
-        acc_time += interval;
+        acc_time += time_diff;
         acc_count += 1;
         
         max_reads = max(reads, max_reads);
         max_writes = max(writes, max_writes);
-        max_time = max(interval, max_time);
-        
-        printf("%d self: %d ns, %d reads, %d writes\n", MYTHREAD, interval, reads, writes);
-        printf("%d acc: %d ns, %d reads, %d writes, %d count\n", MYTHREAD, acc_time, acc_reads, acc_writes, acc_count);
-        printf("%d max: %d ns, %d reads, %d writes\n", MYTHREAD, max_time, max_reads, max_writes);
+        max_time = max(time_diff, max_time);
     }
-    
-    upc_barrier;
     
     if(MYTHREAD == 0)
     {
@@ -262,8 +259,8 @@ void stats_read_tree(int num_threads)
         for(int i = 0; i < num_threads; i++)
         {
             t_time = max(t_time, s_time[i]);
-            t_reads = max(t_time, s_read[i]);
-            t_writes = max(t_time, s_write[i]);
+            t_reads = max(t_reads, s_read[i]);
+            t_writes = max(t_writes, s_write[i]);
         }
         printf("max: %d ns, %d reads, %d writes\n", t_time, t_reads, t_writes);
     }
