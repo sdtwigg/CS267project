@@ -3,6 +3,8 @@
 //
 // auxiliary functions from class code
 //
+inline int max( int a, int b ) { return a > b ? a : b; }
+inline int min( int a, int b ) { return a < b ? a : b; }
 
 int find_option( int argc, char **argv, const char *option )
 {
