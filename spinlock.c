@@ -22,9 +22,9 @@ void cleanup_spinlock()
 {   
     upc_barrier;
     
-    if(MYTHREAD == 0) upc_free(s_write);
-    if(MYTHREAD == 0) upc_free(s_read);
-    if(MYTHREAD == 0) upc_free(s_time);
+    if(MYTHREAD == 0) upc_free((shared int *) s_write);
+    if(MYTHREAD == 0) upc_free((shared int *) s_read);
+    if(MYTHREAD == 0) upc_free((shared int *) s_time);
 }
 
 void test_spinlock(shared int * data, shared strict volatile int *valid, int num_threads)

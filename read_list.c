@@ -41,9 +41,9 @@ void cleanup_read_list()
     if(MYTHREAD == 0) upc_free((shared int *) next_alert);
     if(MYTHREAD == 0) upc_free((shared int *) sentinel);
     
-    if(MYTHREAD == 0) upc_free(s_write);
-    if(MYTHREAD == 0) upc_free(s_read);
-    if(MYTHREAD == 0) upc_free(s_time);
+    if(MYTHREAD == 0) upc_free((shared int *) s_write);
+    if(MYTHREAD == 0) upc_free((shared int *) s_read);
+    if(MYTHREAD == 0) upc_free((shared int *) s_time);
 }
 
 void reset_read_list(shared strict volatile int *valid)
