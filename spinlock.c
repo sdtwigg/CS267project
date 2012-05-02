@@ -7,9 +7,9 @@ static int reads, writes;
 static int acc_reads = 0, acc_writes = 0, acc_time = 0, acc_count = 0;
 static int max_reads = 0, max_writes = 0, max_time = 0;
 
-shared int *s_time;
-shared int *s_read;
-shared int *s_write;
+shared volatile int *s_time;
+shared volatile int *s_read;
+shared volatile int *s_write;
 
 void setup_spinlock()
 {
@@ -110,11 +110,14 @@ void stats_spinlock(int num_threads)
     s_read[MYTHREAD]  = acc_writes/acc_count;
     s_write[MYTHREAD] = acc_time/acc_count;
     
+    printf("%d avg: %d ns, %d reads, %d writes\n", MYTHREAD, acc_reads/acc_count, acc_writes/acc_count, acc_time/acc_count);
+    printf("%d max: %d ns, %d reads, %d writes\n", MYTHREAD, max_time, max_reads, max_writes);
+    
     upc_barrier;
     
     if(MYTHREAD == 0)
     {
-        printf("\nSUMMARY: Spinlock Experiment with %d threads (%d owns)\n", num_threads);
+        printf("\nSUMMARY: Spinlock Experiment with %d threads\n", num_threads);
         int t_time=0, t_reads=0, t_writes=0;
         for(int i = 0; i < num_threads; i++)
         {
