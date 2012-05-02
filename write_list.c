@@ -187,9 +187,9 @@ void stats_write_list(int num_threads)
 {
     acc_count = max(acc_count, 1);
 
-    s_time[MYTHREAD]  = acc_reads/acc_count;
-    s_read[MYTHREAD]  = acc_writes/acc_count;
-    s_write[MYTHREAD] = acc_time/acc_count;
+    s_time[MYTHREAD]  = acc_time/acc_count;
+    s_read[MYTHREAD]  = acc_reads/acc_count;
+    s_write[MYTHREAD] = acc_writes/acc_count;
     
     upc_barrier;
     
