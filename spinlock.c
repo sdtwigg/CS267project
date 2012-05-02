@@ -3,9 +3,9 @@
 shared int lock_holder;
 shared int time_offset;
 
-int reads, writes;
-int acc_reads = 0, acc_writes = 0, acc_time = 0, acc_count = 0;
-int max_reads = 0, max_writes = 0, max_time = 0;
+static int reads, writes;
+static int acc_reads = 0, acc_writes = 0, acc_time = 0, acc_count = 0;
+static int max_reads = 0, max_writes = 0, max_time = 0;
 
 shared int *s_time;
 shared int *s_read;
