@@ -40,8 +40,8 @@ void stats_write_list(int num_threads);
 void stats_read_list(int num_threads);
 void stats_read_tree(int num_threads);
 
-inline int max( int a, int b );
-inline int min( int a, int b );
+int max( int a, int b );
+int min( int a, int b );
 
 int find_option( int argc, char **argv, const char *option );
 int read_int( int argc, char **argv, const char *option, int default_value );
