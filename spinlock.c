@@ -86,6 +86,10 @@ void test_spinlock(shared int * data, shared strict volatile int *valid, int num
         max_writes = max(writes, max_writes);
         max_time = max(interval, max_time);
         
+        printf("%d self: %d ns, %d reads, %d writes\n", MYTHREAD, interval, reads, writes);
+        printf("%d acc: %d ns, %d reads, %d writes, %d count\n", MYTHREAD, acc_time, acc_reads, acc_writes, acc_count);
+        printf("%d max: %d ns, %d reads, %d writes\n", MYTHREAD, max_time, max_reads, max_writes);
+        
     }
     
     upc_barrier;
@@ -109,9 +113,6 @@ void stats_spinlock(int num_threads)
     s_time[MYTHREAD]  = acc_reads/acc_count;
     s_read[MYTHREAD]  = acc_writes/acc_count;
     s_write[MYTHREAD] = acc_time/acc_count;
-    
-    printf("%d avg: %d ns, %d reads, %d writes\n", MYTHREAD, acc_reads/acc_count, acc_writes/acc_count, acc_time/acc_count);
-    printf("%d max: %d ns, %d reads, %d writes\n", MYTHREAD, max_time, max_reads, max_writes);
     
     upc_barrier;
     
