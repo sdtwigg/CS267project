@@ -1,5 +1,7 @@
 #include "project.h"
 
+const int num_trials = 16;
+
 int main( int argc, char** argv )
 {
     int num_threads = read_int( argc, argv, "-n", THREADS);
@@ -28,46 +30,34 @@ int main( int argc, char** argv )
     
     upc_barrier;
     setup_spinlock();
-    test_spinlock(data, valid, num_threads);
-    test_spinlock(data, valid, num_threads);
-    test_spinlock(data, valid, num_threads);
-    test_spinlock(data, valid, num_threads);
+    for(int i = 0; i < num_trials; i++) test_spinlock(data, valid, num_threads);
     cleanup_spinlock();
     
 //    upc_barrier;
 //    setup_limited_directory(4);
 //    test_limited_directory(data, valid, num_threads, 4);
 //    cleanup_limited_directory();
-    
+
     upc_barrier;
     setup_write_list();
-    test_write_list(data, valid, num_threads);
-    test_write_list(data, valid, num_threads);
-    test_write_list(data, valid, num_threads);
-    test_write_list(data, valid, num_threads);
+    for(int i = 0; i < num_trials; i++) test_write_list(data, valid, num_threads);
     cleanup_write_list();
     
     upc_barrier;
     setup_read_list();
-    test_read_list(data, valid, num_threads);
-    test_read_list(data, valid, num_threads);
-    test_read_list(data, valid, num_threads);
-    test_read_list(data, valid, num_threads);
+    for(int i = 0; i < num_trials; i++) test_read_list(data, valid, num_threads);
     cleanup_read_list();
     
     upc_barrier;
     setup_read_tree();
-    test_read_tree(data, valid, num_threads);
-    test_read_tree(data, valid, num_threads);
-    test_read_tree(data, valid, num_threads);
-    test_read_tree(data, valid, num_threads);
+    for(int i = 0; i < num_trials; i++) test_read_tree(data, valid, num_threads);
     cleanup_read_tree();
     
     upc_barrier;
-    stats_spinlock();
-    stats_write_list();
-    stats_read_list();
-    stats_read_tree();
+    stats_spinlock(num_threads);
+    stats_write_list(num_threads);
+    stats_read_list(num_threads);
+    stats_read_tree(num_threads);
     
     if(MYTHREAD ==0)
     {
