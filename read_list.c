@@ -200,7 +200,7 @@ void stats_read_list(int num_threads)
         {
             t_time += s_time[i]; t_reads += s_read[i]; t_writes += s_write[i];
         }
-        printf("avg: %d ns, %d reads, %d writes\n", t_time/num_threads, t_reads/num_threads, t_writes/num_threads);
+        printf("SUMMARY: avg: %d ns, %d reads, %d writes\n", t_time/num_threads, t_reads/num_threads, t_writes/num_threads);
     }
     
     upc_barrier;
@@ -220,7 +220,7 @@ void stats_read_list(int num_threads)
             t_reads = max(t_reads, s_read[i]);
             t_writes = max(t_writes, s_write[i]);
         }
-        printf("max: %d ns, %d reads, %d writes\n", t_time, t_reads, t_writes);
+        printf("SUMMARY: max: %d ns, %d reads, %d writes\n", t_time, t_reads, t_writes);
     }
     
     upc_barrier;
