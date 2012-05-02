@@ -8,6 +8,8 @@ shared strict volatile int *next_alert;
 shared slockpt *dir_locks;
 
 int reads, writes;
+int acc_reads = 0, acc_writes = 0, acc_time = 0, acc_count = 0;
+int max_reads = 0, max_writes = 0, max_time = 0;
 
 shared int *s_time;
 shared int *s_read;
@@ -152,6 +154,19 @@ void test_write_list(shared int * data, shared strict volatile int *valid, int n
     s_read[MYTHREAD]  = reads;
     s_write[MYTHREAD] = writes;
     
+    if((interval > 0) && (lock_holder != MYTHREAD))
+    {
+        acc_reads += reads;
+        acc_writes += writes;
+        acc_time += interval;
+        acc_count += 1;
+        
+        max_reads = max(reads, max_reads);
+        max_writes = max(writes, max_writes);
+        max_time = max(interval, max_time);
+        
+    }
+    
     upc_barrier;
     
     if(MYTHREAD == 0)
@@ -161,6 +176,50 @@ void test_write_list(shared int * data, shared strict volatile int *valid, int n
         {
             printf("%d: time %d ns, reads %d, writes %d \n", i, s_time[i]-time_offset, s_read[i], s_write[i]);
         }
+    }
+    
+    upc_barrier;
+}
+
+void stats_write_list(int num_threads)
+{
+    acc_count = max(acc_count, 1);
+
+    s_time[MYTHREAD]  = acc_reads/acc_count;
+    s_read[MYTHREAD]  = acc_writes/acc_count;
+    s_write[MYTHREAD] = acc_time/acc_count;
+    
+    upc_barrier;
+    
+    if(MYTHREAD == 0)
+    {
+        printf("\nSUMMARY: Spinlock Experiment with %d threads (%d owns)\n", num_threads);
+        int t_time=0, t_reads=0, t_writes=0;
+        for(int i = 0; i < num_threads; i++)
+        {
+            t_time += s_time[i]; t_reads += s_read[i]; t_writes += s_write[i];
+        }
+        printf("avg: %d ns, %d reads, %d writes\n", t_time/num_threads, t_reads/num_threads, t_writes/num_threads);
+    }
+    
+    upc_barrier;
+
+    s_time[MYTHREAD]  = max_time;
+    s_read[MYTHREAD]  = max_reads;
+    s_write[MYTHREAD] = max_writes;
+    
+    upc_barrier;
+    
+    if(MYTHREAD == 0)
+    {
+        int t_time=0, t_reads=0, t_writes=0;
+        for(int i = 0; i < num_threads; i++)
+        {
+            t_time = max(t_time, s_time[i]);
+            t_reads = max(t_time, s_read[i]);
+            t_writes = max(t_time, s_write[i]);
+        }
+        printf("max: %d ns, %d reads, %d writes\n", t_time, t_reads, t_writes);
     }
     
     upc_barrier;

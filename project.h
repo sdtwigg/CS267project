@@ -35,6 +35,11 @@ void setup_read_tree();
 void test_read_tree(shared int * data, shared strict volatile int *valid, int num_threads);
 void cleanup_read_tree();
 
+void stats_spinlock(int num_threads);
+void stats_write_list(int num_threads);
+void stats_read_list(int num_threads);
+void stats_read_tree(int num_threads);
+
 inline int max( int a, int b ) { return a > b ? a : b; }
 inline int min( int a, int b ) { return a < b ? a : b; }
 
